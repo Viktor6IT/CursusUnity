@@ -5,11 +5,20 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     private Rigidbody PlayerRB;
-    private float jumpPower = 650.0f;
-    private float gravityModifier = 1.8f;
+    private float jumpPower = 651.2f;
+    private float gravityModifier = 1.9f;
     public bool IsOnGround = true;
+
     public bool Gameover;
+
     private Animator PlayerAnimation;
+    public ParticleSystem ExplosionParticle;
+    public ParticleSystem DirtParticle;
+    public AudioClip JumpSound;
+    public AudioClip CrashSound;
+    private AudioSource playerAudio;
+    private float JumpVolume = 0.75f;
+    private float CrashVolume = 0.5f;
 
     // Start is called before the first frame update
     void Start()
@@ -17,6 +26,7 @@ public class PlayerController : MonoBehaviour
         PlayerRB = GetComponent<Rigidbody>();
         PlayerAnimation = GetComponent<Animator>();
         Physics.gravity *= gravityModifier;
+        playerAudio = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -27,6 +37,8 @@ public class PlayerController : MonoBehaviour
             PlayerRB.AddForce(Vector3.up * jumpPower, ForceMode.Impulse);
             IsOnGround = false;
             PlayerAnimation.SetTrigger("Jump_trig");
+            DirtParticle.Stop();
+            playerAudio.PlayOneShot(JumpSound,JumpVolume);
         }
     }
     private void OnCollisionEnter(Collision collision)
@@ -34,6 +46,7 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             IsOnGround = true;
+            DirtParticle.Play();
         }
         else if (collision.gameObject.CompareTag("Obstacle"))
         {
@@ -41,6 +54,10 @@ public class PlayerController : MonoBehaviour
             Debug.Log("Game is over");
             PlayerAnimation.SetBool("Death_b", true);
             PlayerAnimation.SetInteger("DeathType_int", 1);
+            ExplosionParticle.Play();
+            DirtParticle.Stop();
+            playerAudio.PlayOneShot(CrashSound, CrashVolume);
+
         }
     }
 }
